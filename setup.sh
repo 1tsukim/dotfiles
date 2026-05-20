@@ -69,16 +69,20 @@ copy_if_missing "$DOTFILES_DIR/git/.config/git/config.local"   "$DOTFILES_DIR/gi
 copy_if_missing "$DOTFILES_DIR/codex/.codex/config.toml"       "$DOTFILES_DIR/codex/.codex/config.toml.example"
 ok "local templates ready"
 
-# 4.6. Claude Code memory は別 repo (1tsukim/claude-context, private) で管理
+# 4.6. Claude Code memory + skills は private companion repo (個人用) で管理
+# fork 者 / 他マシン（権限なし）の場合は clone 失敗が想定内、skip して継続する
 CLAUDE_CONTEXT_DIR="$HOME/ghq/github.com/1tsukim/claude-context"
 if [ ! -d "$CLAUDE_CONTEXT_DIR" ]; then
-    info "Cloning 1tsukim/claude-context..."
-    ghq get https://github.com/1tsukim/claude-context.git || \
-        warn "claude-context の clone に失敗（権限切替が必要かも: gh auth switch -u 1tsukim）"
+    info "Trying to clone optional companion repo for Claude Code memory / skills..."
+    if ghq get https://github.com/1tsukim/claude-context.git 2>/dev/null; then
+        ok "companion repo cloned"
+    else
+        info "companion repo skipped (private、fork 者なら想定通り)"
+    fi
 fi
 if [ -d "$CLAUDE_CONTEXT_DIR" ]; then
     (cd "$CLAUDE_CONTEXT_DIR" && stow --target="$HOME" --restow claude 2>&1 | grep -v "^$" || true)
-    ok "claude-context stowed"
+    ok "companion repo stowed"
 fi
 
 # 5. Brewfile から残りのパッケージを一括インストール

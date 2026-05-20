@@ -18,12 +18,22 @@ XDG Base Directory 準拠の dotfiles。GNU Stow で `$HOME` に symlink 展開�
 | `tmux/` | tmux.conf と status バーヘルパー |
 | `tealdeer/` | tldr クライアント (キャッシュ場所だけ XDG_CACHE_HOME に向ける) |
 | `karabiner/` | Karabiner-Elements のカスタムキーマップ (`karabiner.json` のみ。`automatic_backups/` `assets/` は含めない) |
-| `claude/` | Claude Code 設定 (`CLAUDE.md`, `settings.json`, `hooks/`, `agents/`, `commands/`, `skills/`, `projects/.../memory/`, `statusline-command.sh`)。runtime state (session, history, cache, telemetry, todos, file-history, paste-cache, .statusline-sessions-*, .DS_Store, .last-cleanup, settings.local.json) は除外 |
+| `claude/` | Claude Code 設定 (`CLAUDE.md`, `settings.json`, `hooks/`, `agents/`, `commands/`, `rules/`, `statusline-command.sh`)。`skills/` と `projects/.../memory/` は別 private repo で管理 (下記)。runtime state (session, history, cache, telemetry, todos, file-history, paste-cache, .statusline-sessions-*, .DS_Store, .last-cleanup, settings.local.json) は除外 |
 | `codex/` | OpenAI Codex CLI 設定 (`config.toml` のみ。`auth.json` `cache/` `log/` `sessions/` `*.sqlite*` 等の runtime state は除外) |
 | `cmux/` | cmux ターミナル設定 (`~/.config/cmux/cmux.json` + `settings.json`)。`~/.cmuxterm/` の workstream/session ログや `~/Library/Application Support/cmux/` の socket・session は除外 |
 | `cursor/` | Cursor の User snippets (`python.json` 17個)。配置先は `~/Library/Application Support/Cursor/User/snippets/` |
 
 リポ直下の `Brewfile` は Stow せずそのまま読む。`.zshrc` で `HOMEBREW_BUNDLE_FILE` をこのファイルに固定しているため、普段の `brew bundle dump` もここに書き出される。
+
+### Claude Code memory / skills について
+
+`~/.claude/projects/-Users-*/memory/` (memory) と `~/.claude/skills/` (skills) は **別の private repo（個人用）** で管理しているため、本リポには含まれません。
+
+- `.gitignore` で `claude/.claude/projects/` と `claude/.claude/skills/` を除外
+- `setup.sh` は対応する companion private repo を optional に clone + stow を試行します
+  - 権限がなければ自動で skip（fork 者でも dotfiles 単体で動作）
+
+fork した方は `~/.claude/projects/-Users-<username>/memory/` と `~/.claude/skills/` を直接管理するか、自分用の companion private repo を作成して `setup.sh` の該当箇所を書き換えてください。
 
 
 ## セットアップ (新マシン)
