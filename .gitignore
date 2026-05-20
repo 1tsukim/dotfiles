@@ -5,11 +5,13 @@
 # Machine-local 設定（git 管理外）
 # - local.zsh:           マシン固有の env var（AWS instance ID 等）
 # - secrets.zsh:         認証情報（API key 等、必要になったら作る）
-# - git config.local:    git user identity（name / 業務メアド）
+# - git config.local:    default git user identity（個人 noreply 想定）
+# - git config.work:     業務 git user identity（社用メール）
 # - codex config.toml:   Codex project trust（絶対パス hardcode 必須）
 zsh/.config/zsh/local.zsh
 zsh/.config/zsh/secrets.zsh
 git/.config/git/config.local
+git/.config/git/config.work
 codex/.codex/config.toml
 
 # Claude Code memory / skill は別 repo (1tsukim/claude-context) で管理

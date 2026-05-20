@@ -1,0 +1,10 @@
+# config.work.example — 業務 identity テンプレート（公開）
+# このファイルを config.work にコピーして自分の値で埋めてください。
+#   cp config.work.example config.work
+#
+# config.work は .gitignore で除外されているため git に入りません。
+# config から [includeIf "gitdir:<業務ディレクトリ>/"] 経由で読み込まれます。
+
+[user]
+	name = Your Work Name
+	email = your-work-email@example.com
