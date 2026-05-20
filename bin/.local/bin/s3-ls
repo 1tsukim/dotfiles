@@ -1,0 +1,7 @@
+#!/bin/bash
+# AWS S3 ls (Administrator profile 自動付与)
+# Background: デフォルトプロファイル (SSM 経由の read-only profile) は s3:ListBucket 権限が無く失敗する。
+# Profile: $AWS_PROFILE_ADMIN を参照（local.zsh で export 済み想定）
+# Usage: s3-ls [s3://bucket/prefix/ ...] [aws s3 ls オプション]
+
+exec aws s3 ls "$@" --profile "${AWS_PROFILE_ADMIN:?AWS_PROFILE_ADMIN is not set; define it in local.zsh}"

@@ -1,0 +1,33 @@
+# [user] は config.local に分離（git 管理外）。詳細は config.local.example 参照。
+# 1tsukim 配下のリポでは末尾の includeIf で個人 noreply メアドに上書きされる。
+[include]
+	path = ~/.config/git/config.local
+[color]
+	diff = auto
+[ghq]
+	root = ~/ghq
+[merge]
+	conflictstyle = zdiff3
+[init]
+	defaultBranch = main
+[push]
+	autoSetupRemote = true
+[rerere]
+	enabled = true
+[branch]
+	sort = -committerdate
+[column]
+	ui = auto
+[diff]
+	algorithm = histogram
+	colorMoved = default
+
+# ~/ghq/github.com/1tsukim/ 配下では user.email を個人用 (noreply) に切り替え
+[includeIf "gitdir:~/ghq/github.com/1tsukim/"]
+	path = ~/.config/git/config.1tsukim
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential

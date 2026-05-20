@@ -1,0 +1,411 @@
+# ~/.function — zsh 専用シェル関数集（~/.zshrc から source）
+# bash で source すると zle/bindkey でエラーが出る箇所があるため zsh 専用と割り切る。
+
+# ========== aws() — 誤削除防止ラッパー ==========
+# 'aws' コマンドの rm および delete-* サブコマンドを全プロファイルでブロック。
+# ファイル名 (./ や . を含む文字列) は誤検知防止のため除外。
+# どうしても削除したい場合は 'command aws ...' で関数をバイパス可能。
+aws() {
+    for arg in "$@"; do
+        case "$arg" in
+            rm)
+                echo "aws: 'rm' はブロックされています。意図的な削除は 'command aws ...' でバイパスしてください。" >&2
+                return 1
+                ;;
+            delete-[a-z]*)
+                # delete-object, delete-objects, delete-bucket 等。ファイル名 (./や.を含む) は除外
+                if [[ "$arg" != *[./]* ]]; then
+                    echo "aws: '$arg' はブロックされています。意図的な削除は 'command aws ...' でバイパスしてください。" >&2
+                    return 1
+                fi
+                ;;
+        esac
+    done
+    command aws "$@"
+}
+
+# ========== AWS EC2: 起動・停止・リスタート（汎用） ==========
+# alias 側で local.zsh の $EC2_* / $AWS_PROFILE_SSM を渡して呼ぶ前提。
+# 使い方:
+#   ec2_start   <instance-id> [profile]   # profile 省略時は $AWS_PROFILE_SSM（既定 ssm-access）
+#   ec2_stop    <instance-id> [profile]
+#   ec2_restart <instance-id> [profile]
+ec2_start() {
+    local id="${1:?instance-id required}"
+    local profile="${2:-${AWS_PROFILE_SSM:-ssm-access}}"
+    aws ec2 start-instances --instance-ids "$id" --profile "$profile"
+}
+
+ec2_stop() {
+    local id="${1:?instance-id required}"
+    local profile="${2:-${AWS_PROFILE_SSM:-ssm-access}}"
+    aws ec2 stop-instances --instance-ids "$id" --profile "$profile"
+}
+
+# 再起動権限が無い環境向けに stop→wait→start で代替。
+ec2_restart() {
+    local id="${1:?instance-id required}"
+    local profile="${2:-${AWS_PROFILE_SSM:-ssm-access}}"
+    aws ec2 stop-instances --instance-ids "$id" --profile "$profile" \
+        && aws ec2 wait instance-stopped --instance-ids "$id" --profile "$profile" \
+        && aws ec2 start-instances --instance-ids "$id" --profile "$profile"
+}
+
+# ========== yazi: 終了時のカレントディレクトリへ自動 cd するラッパー ==========
+# Ghostty 等の OSC 7 対応端末では既に追従するが、Cursor/SSH 等の保険として
+function y() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(command cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
+}
+
+# ========== rgf: ripgrep で中身を全文検索 → 選択行をエディタで開く ==========
+rgf() {
+  local result file line
+  result=$(rg --line-number --no-heading --color=always --smart-case "${1:-}" |
+    fzf --ansi --delimiter=: \
+        --preview 'bat --color=always --highlight-line {2} {1}' \
+        --preview-window 'right:60%:+{2}/2')
+  [[ -z "$result" ]] && return
+  file=$(echo "$result" | cut -d: -f1)
+  line=$(echo "$result" | cut -d: -f2)
+  ${EDITOR:-vi} "$file" +"$line"
+}
+
+# ========== ghq + fzf: Ctrl-G で全リポジトリから fuzzy 検索して cd ==========
+# tmux 内で実行した場合は、選んだリポジトリ名の tmux ウィンドウを作って移動
+ghq-fzf() {
+  local selected
+  selected=$(ghq list | fzf --preview "eza -l --git --color=always $(ghq root)/{} 2>/dev/null | head -40")
+  if [[ -n "$selected" ]]; then
+    local repo_dir="$(ghq root)/${selected}"
+    if [[ -n "$TMUX" ]]; then
+      # tmux 内: リポジトリ名のウィンドウを開く（既にあれば切替）
+      local win_name="${selected##*/}"
+      if tmux list-windows -F '#W' | grep -qx "$win_name"; then
+        tmux select-window -t "$win_name"
+      else
+        tmux new-window -n "$win_name" -c "$repo_dir"
+      fi
+    else
+      cd "$repo_dir"
+    fi
+  fi
+  zle reset-prompt 2>/dev/null
+}
+zle -N ghq-fzf
+bindkey '^g' ghq-fzf
+
+# ============================================================
+# 以下、https://github.com/ryomamoyr/dotfile/blob/main/shell/.function から取り込み
+# ifz (chafa 未導入のため除外)、opull/opush/rr/rc/chost/gg/pt (本人専用または環境依存) は除外。
+# fd は fd-find CLI と衝突するため fcd にリネーム（fda→fcda, fdr→fcdr）。
+# ============================================================
+
+# ========== chpwd: cd 時に ls_abbrev を自動実行 ==========
+chpwd() {
+    ls_abbrev
+}
+
+# ファイル一覧の短縮表示。10 行超なら先頭5＋末尾5＋総数
+ls_abbrev() {
+    local ls_result
+    ls_result=$(eza --icons=always -a --color=always)
+
+    local ls_lines=$(echo "$ls_result" | wc -l | tr -d ' ')
+
+    if [ $ls_lines -gt 10 ]; then
+        echo "$ls_result" | head -n 5
+        echo '...'
+        echo "$ls_result" | tail -n 5
+        echo "$(eza -1 -a | wc -l | tr -d ' ') files exist"
+    else
+        echo "$ls_result"
+    fi
+}
+
+# ========== tarxz: tar.xz 圧縮 ==========
+# 使い方: tarxz <dir>  →  <dir>.tar.xz
+tarxz() {
+    dirname=${1%/}
+    tar -cvJf $dirname.tar.xz $dirname
+}
+
+# ========== fcd / fcda / fcdr: fzf で cd ==========
+# fcd: カレント直下のディレクトリから選んで cd
+fcd() {
+  DIR=$(find * -maxdepth 0 -type d -print 2> /dev/null | fzf-tmux) \
+    && cd "$DIR"
+}
+
+# fcda: 配下のディレクトリ全部から選んで cd
+fcda() {
+  local dir
+  dir=$(find ${1:-.} -path '*/\.*' -prune \
+                  -o -type d -print 2> /dev/null | fzf +m) &&
+  cd "$dir"
+}
+
+# fcdr: 親ディレクトリを遡って選択
+fcdr() {
+  local declare dirs=()
+  get_parent_dirs() {
+    if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
+    if [[ "${1}" == '/' ]]; then
+      for _dir in "${dirs[@]}"; do echo $_dir; done
+    else
+      get_parent_dirs $(dirname "$1")
+    fi
+  }
+  local DIR=$(get_parent_dirs $(readlink -f "${1:-$PWD}") | fzf-tmux --tac)
+  cd "$DIR"
+}
+
+# ========== zipw: Windows 向け zip 圧縮（7z 使用） ==========
+zipw() {
+  if [ -z "$1" ] || [ "$1" = "." ]; then
+    local zip_name="$(basename $(pwd)).zip"
+    7z a -tzip "$zip_name" "$(pwd)"/*
+  else
+    local target="$1"
+    local zip_name="$(basename "$target").zip"
+    7z a -tzip "$zip_name" "$target"/*
+  fi
+}
+
+# ========== tmux: セッション/ペイン操作 ==========
+# tmuxkillf: fzf でセッション選択して kill（複数可）
+tmuxkillf() {
+    local sessions
+    sessions="$(tmux ls | fzf --exit-0 --multi)" || return $?
+    local i
+    for i in "${(f@)sessions}"
+    do
+        [[ $i =~ '([^:]*):.*' ]] && {
+            echo "Killing $match[1]"
+            tmux kill-session -t "$match[1]"
+        }
+    done
+}
+
+# tm: セッションを attach、無ければ作成
+tm() {
+  [[ -n "$TMUX" ]] && change="switch-client" || change="attach-session"
+  if [ $1 ]; then
+    tmux $change -t "$1" 2>/dev/null || (tmux new-session -d -s $1 && tmux $change -t "$1"); return
+  fi
+  session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) && tmux $change -t "$session" || echo "No sessions found."
+}
+
+# ftpane: pane を fzf で切替
+ftpane() {
+  local panes current_window current_pane target target_window target_pane
+  panes=$(tmux list-panes -s -F '#I:#P - #{pane_current_path} #{pane_current_command}')
+  current_pane=$(tmux display-message -p '#I:#P')
+  current_window=$(tmux display-message -p '#I')
+
+  target=$(echo "$panes" | grep -v "$current_pane" | fzf +m --reverse) || return
+
+  target_window=$(echo $target | awk 'BEGIN{FS=":|-"} {print$1}')
+  target_pane=$(echo $target | awk 'BEGIN{FS=":|-"} {print$2}' | cut -c 1)
+
+  if [[ $current_window -eq $target_window ]]; then
+    tmux select-pane -t ${target_window}.${target_pane}
+  else
+    tmux select-pane -t ${target_window}.${target_pane} &&
+    tmux select-window -t $target_window
+  fi
+}
+
+# pjs: 新ウィンドウ + 上下分割
+pjs() {
+  local name="${1:-$(basename $(pwd))}"
+  tmux new-window -n "$name"
+  tmux split-window -v -c '#{pane_current_path}'
+  tmux select-pane -U
+}
+
+# pj: 新ウィンドウ + 左右分割
+pj() {
+  local name="${1:-$(basename $(pwd))}"
+  tmux new-window -n "$name"
+  tmux split-window -h -c '#{pane_current_path}'
+  tmux select-pane -L
+}
+
+# ========== fzf で選んでエディタで開く ==========
+# vfz: vim で開く
+vfz() {
+  local file
+  file=$(fzf) && vim "$file"
+}
+
+# cfz: cursor で開く
+cfz() {
+  local file
+  file=$(fzf) && cursor "$file"
+}
+
+# ========== Docker: fzf でコンテナ選択 ==========
+# da: 停止コンテナを起動して attach
+da() {
+  local cid
+  cid=$(docker ps -a | sed 1d | fzf -1 -q "$1" | awk '{print $1}')
+  [ -n "$cid" ] && docker start "$cid" && docker attach "$cid"
+}
+
+# ds: 起動中コンテナを停止
+ds() {
+  local cid
+  cid=$(docker ps | sed 1d | fzf -q "$1" | awk '{print $1}')
+  [ -n "$cid" ] && docker stop "$cid"
+}
+
+# ========== jk: uv プロジェクト用 Jupyter カーネル登録 ==========
+# 使い方: jk [カーネル名]  ※省略時はディレクトリ名
+jk() {
+  local name="${1:-$(basename $(pwd))}"
+  uv add --quiet ipykernel 2>/dev/null
+  uv run python -m ipykernel install --user --name "$name"
+  echo "カーネル '$name' を登録しました"
+}
+
+# ========== o: open ラッパー（mathiasbynens/dotfiles 由来） ==========
+# 引数なし → Finder で現在のディレクトリを開く / 引数あり → そのパスを open
+# 使い方: o          # カレントを Finder で
+#         o file.png # 既定アプリで開く
+#         o .        # 明示的にカレント
+o() { open "${@:-.}"; }
+
+# ============================================================
+# cmux: workspace 操作（cowboy/dotfiles の tm/qq 由来、cmux 用に再実装）
+# tmux 版（tm/pj/pjs）と並列に存在。cmux.app + `cmux` CLI が前提。
+# ============================================================
+
+# cm: workspace を attach、無ければ作成（tm の cmux 版）
+#   cm                 # 直近の workspace を選択
+#   cm ~/some/path     # ディレクトリ → cmux <path>（標準動作）
+#   cm <name>          # 名前部分一致で既存検索、無ければ新規
+cm() {
+    local arg="$1"
+    if [[ -z "$arg" ]]; then
+        local ws
+        ws=$(cmux list-workspaces 2>/dev/null | awk '{print $2}' | head -1)
+        [[ -n "$ws" ]] && cmux select-workspace --workspace "$ws"
+        return
+    fi
+    if [[ -d "$arg" ]]; then
+        cmux "$arg"
+        return
+    fi
+    local ws
+    ws=$(cmux list-workspaces 2>/dev/null | grep -i -- "$arg" | head -1 | awk '{print $2}')
+    if [[ -n "$ws" ]]; then
+        cmux select-workspace --workspace "$ws"
+    else
+        cmux new-workspace --name "$arg" --focus true >/dev/null
+    fi
+}
+
+# qq: 新 workspace + エディタ起動 + シェル分割（cowboy/dotfiles の qq 由来）
+#   qq                 # カレントで 2 ペイン
+#   qq 3               # 3 ペイン
+#   qq 3 ~/marp-themes # 指定ディレクトリで 3 ペイン
+qq() {
+    local panes="${1:-2}"
+    local dir="${2:-$PWD}"
+    dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "qq: dir not found: $2" >&2; return 1; }
+
+    cmux new-workspace \
+        --cwd "$dir" \
+        --command "${VISUAL:-${EDITOR:-vim}} ." \
+        --focus true \
+        --name "$(basename "$dir")" >/dev/null
+
+    local ws
+    ws=$(cmux current-workspace)
+
+    local i
+    for (( i = 1; i < panes; i++ )); do
+        cmux new-split right --workspace "$ws" --focus false >/dev/null
+    done
+}
+alias q2='qq 2'
+alias q3='qq 3'
+alias q4='qq 4'
+
+# qb: エディタ + ブラウザ並列（Marp プレビュー想定）
+#   qb                              # PWD + http://localhost:8080
+#   qb ~/marp-themes                # 指定ディレクトリ
+#   qb ~/marp-themes http://...     # URL も指定
+qb() {
+    local dir="${1:-$PWD}"
+    local url="${2:-http://localhost:8080}"
+    dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "qb: dir not found: $1" >&2; return 1; }
+
+    cmux new-workspace \
+        --cwd "$dir" \
+        --command "${VISUAL:-${EDITOR:-vim}} ." \
+        --focus true \
+        --name "$(basename "$dir")" >/dev/null
+
+    local ws
+    ws=$(cmux current-workspace)
+    cmux new-pane --type browser --direction right --url "$url" --workspace "$ws" --focus false >/dev/null
+}
+
+# cmc: Claude Code 常駐 workspace（dir + claude 起動 + 右にシェル）
+#   cmc                # PWD で Claude 起動
+#   cmc ~/marp-themes  # 案件ディレクトリで起動
+cmc() {
+    local dir="${1:-$PWD}"
+    dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "cmc: dir not found: $1" >&2; return 1; }
+
+    cmux new-workspace \
+        --cwd "$dir" \
+        --command "claude" \
+        --focus true \
+        --name "claude:$(basename "$dir")" >/dev/null
+
+    local ws
+    ws=$(cmux current-workspace)
+    cmux new-split right --workspace "$ws" --focus false >/dev/null
+}
+
+# cms: 現在の workspace に Claude split を右に追加
+cms() {
+    cmux new-split right --command "claude" --focus true >/dev/null
+}
+
+# ============================================================
+# ZLE widget bindings: zsh ビルトイン強化（yutkat 由来）
+# ============================================================
+
+# Ctrl-X Ctrl-E: 現在のコマンドラインを $EDITOR で開いて編集
+# 長いコマンド / docker run / 複数 pipe 等を腰据えて編集したい時。保存して閉じると編集後の内容で行が置換される。
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
+
+# Ctrl-X Ctrl-Y: 現在のコマンドラインをクリップボードへコピー
+# Slack 共有 / Claude Code 貼付 / docs 引用に。マウス選択不要。
+pbcopy-buffer() {
+    print -rn -- "$BUFFER" | pbcopy
+    zle -M "copied to clipboard"
+}
+zle -N pbcopy-buffer
+bindkey '^X^Y' pbcopy-buffer
+
+# Ctrl-]: 直前コマンドの最終単語を挿入
+# `mkdir foo/bar/baz` → `cd <Ctrl-]>` で baz パス全体が入る。Alt-. の派生だが「最終単語一発」に特化。
+autoload -Uz smart-insert-last-word
+zle -N smart-insert-last-word
+bindkey '^]' smart-insert-last-word
+
+# Ctrl-Q: 書きかけコマンドをスタックに退避、次プロンプトで自動復活
+# 長コマンド書いてる途中で「先に別コマンド確認したい」を非破壊的に挟める。
+# 退避後、別コマンド実行 → 次の空プロンプトで退避していた行が自動的に戻る。
+bindkey '^Q' push-line-or-edit

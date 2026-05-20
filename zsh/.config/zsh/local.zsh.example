@@ -1,0 +1,19 @@
+# local.zsh.example — マシン固有の env var テンプレート
+# このファイルを local.zsh にコピーして自分の値で埋めてください。
+#   cp local.zsh.example local.zsh
+#
+# local.zsh は .gitignore で除外されているため、git には含まれません。
+# .zshrc → local.zsh → .function/.alias の順で読まれます。
+
+# ========== AWS profile（~/.aws/config で定義した名前） ==========
+export AWS_PROFILE_SSM="ssm-access"
+export AWS_PROFILE_ADMIN="ACCOUNT_ID_AdministratorAccess"
+
+# ========== AWS EC2 インスタンス ID ==========
+# aws ec2 describe-instances --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0]]' --output table
+# で確認できます。.alias の start_dev1 / start_dev2 / start_dev3 / start_train が
+# それぞれ EC2_DEV1 / EC2_DEV2 / EC2_DEV3 / EC2_TRAIN を参照します。
+export EC2_DEV1="i-xxxxxxxxxxxxxxxxx"
+export EC2_DEV2="i-xxxxxxxxxxxxxxxxx"
+export EC2_DEV3="i-xxxxxxxxxxxxxxxxx"
+export EC2_TRAIN="i-xxxxxxxxxxxxxxxxx"

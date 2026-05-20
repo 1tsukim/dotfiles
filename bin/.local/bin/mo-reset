@@ -1,0 +1,16 @@
+#!/bin/bash
+# mo (markdown viewer) のセッションを完全リセットして単独で開く
+# Background: mo はポート 6275 で 1 台のサーバーを共有する。
+#             既存セッションがあると追記されるので、単独表示にはリセットが必要。
+# Usage: mo-reset <file.md>
+
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "usage: mo-reset <file.md>" >&2
+  exit 1
+fi
+
+mo --shutdown 2>/dev/null || true
+printf 'Y\n' | mo --clear >/dev/null 2>&1 || true
+mo "$@"

@@ -1,0 +1,46 @@
+#!/bin/bash
+# Marp PDF 出力 (themes 自動検出 + allow-local-files デフォルト ON)
+# Background: --theme-set 無しだと frontmatter の theme: foo-theme が無視される。
+#             --allow-local-files 無しだと CSS 経由のローカル画像が読まれない。
+# Usage: marp-pdf <file.md> [追加の marp オプション]
+
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "usage: marp-pdf <file.md> [extra marp options...]" >&2
+  exit 1
+fi
+
+file="$1"
+shift
+
+if [ ! -f "$file" ]; then
+  echo "❌ ファイルが見つかりません: $file" >&2
+  exit 1
+fi
+
+# themes/ を最大 5 階層上まで遡って探す
+dir=$(dirname "$(realpath "$file")")
+themes_dir=""
+for _ in 1 2 3 4 5; do
+  if [ -d "$dir/themes" ]; then
+    themes_dir="$dir/themes"
+    break
+  fi
+  parent=$(dirname "$dir")
+  [ "$parent" = "$dir" ] && break
+  dir="$parent"
+done
+
+# フォールバック: ~/marp-themes/themes
+if [ -z "$themes_dir" ] && [ -d "$HOME/marp-themes/themes" ]; then
+  themes_dir="$HOME/marp-themes/themes"
+fi
+
+if [ -n "$themes_dir" ]; then
+  echo "→ theme-set: $themes_dir"
+  exec marp "$file" --pdf --theme-set "$themes_dir" --allow-local-files "$@"
+else
+  echo "⚠️  themes/ ディレクトリが見つかりません。デフォルトテーマで実行します" >&2
+  exec marp "$file" --pdf --allow-local-files "$@"
+fi

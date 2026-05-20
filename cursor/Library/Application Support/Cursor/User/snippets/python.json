@@ -1,0 +1,165 @@
+{
+  "Notebook header (import 一式)": {
+    "prefix": "nb",
+    "body": [
+      "import os",
+      "import sys",
+      "from pathlib import Path",
+      "",
+      "import numpy as np",
+      "import pandas as pd",
+      "import matplotlib.pyplot as plt",
+      "import seaborn as sns",
+      "from tqdm.auto import tqdm",
+      "",
+      "%matplotlib inline",
+      "$0"
+    ],
+    "description": "Notebook 冒頭の標準 import 一式"
+  },
+  "Cell header (CLAUDE.md 規約)": {
+    "prefix": "cell-h",
+    "body": [
+      "# 仮説検証: ${1:何を明らかにしたいか}",
+      "$0"
+    ],
+    "description": "Jupyter セル先頭の役割コメント (CLAUDE.md 規約)"
+  },
+  "pd.read_csv + head": {
+    "prefix": "rdcsv",
+    "body": [
+      "df = pd.read_csv(\"$1\")",
+      "df.head()$0"
+    ],
+    "description": "CSV を読み込んで先頭表示"
+  },
+  "groupby + agg": {
+    "prefix": "gby",
+    "body": [
+      "df.groupby(\"$1\").agg({",
+      "    \"$2\": \"${3:mean}\",",
+      "}).reset_index()$0"
+    ],
+    "description": "groupby + agg + reset_index"
+  },
+  "pd.merge": {
+    "prefix": "merge",
+    "body": [
+      "pd.merge(${1:left}, ${2:right}, on=\"$3\", how=\"${4:left}\")$0"
+    ],
+    "description": "DataFrame の join"
+  },
+  "pd.pivot_table": {
+    "prefix": "pivot",
+    "body": [
+      "pd.pivot_table(df, index=\"$1\", columns=\"$2\", values=\"$3\", aggfunc=\"${4:mean}\")$0"
+    ],
+    "description": "ピボットテーブル"
+  },
+  "df.info + describe": {
+    "prefix": "desc",
+    "body": [
+      "df.info()",
+      "df.describe(include=\"all\")$0"
+    ],
+    "description": "DataFrame の概観"
+  },
+  "isna check": {
+    "prefix": "nan",
+    "body": [
+      "df.isna().sum().sort_values(ascending=False)$0"
+    ],
+    "description": "欠損数を多い順に表示"
+  },
+  "sns.histplot": {
+    "prefix": "hist",
+    "body": [
+      "fig, ax = plt.subplots(figsize=(${1:8}, ${2:4}))",
+      "sns.histplot(df, x=\"$3\", bins=${4:30}, ax=ax)",
+      "plt.show()$0"
+    ],
+    "description": "ヒストグラム"
+  },
+  "sns.scatterplot": {
+    "prefix": "scatter",
+    "body": [
+      "fig, ax = plt.subplots(figsize=(${1:8}, ${2:6}))",
+      "sns.scatterplot(df, x=\"$3\", y=\"$4\", hue=\"$5\", ax=ax)",
+      "plt.show()$0"
+    ],
+    "description": "散布図 (hue でカテゴリ着色)"
+  },
+  "sns.lineplot (時系列)": {
+    "prefix": "lineplot",
+    "body": [
+      "fig, ax = plt.subplots(figsize=(20, 5))",
+      "sns.lineplot(data=df, x=\"${1:timestamp}\", y=\"$2\", ax=ax, color=\"black\", linewidth=1)",
+      "plt.show()$0"
+    ],
+    "description": "時系列ライン (ryomamoyr 由来)"
+  },
+  "sns.countplot": {
+    "prefix": "countplot",
+    "body": [
+      "fig, ax = plt.subplots(figsize=(20, 5))",
+      "sns.countplot(data=df, x=\"$1\", ax=ax)",
+      "plt.show()$0"
+    ],
+    "description": "カテゴリ件数 (ryomamoyr 由来)"
+  },
+  "plt.savefig": {
+    "prefix": "savefig",
+    "body": [
+      "plt.savefig(\"$1\", dpi=${2:200}, bbox_inches=\"tight\")$0"
+    ],
+    "description": "図の保存 (dpi+余白タイト)"
+  },
+  "Path glob (CSV 列挙)": {
+    "prefix": "glob",
+    "body": [
+      "file_list = list(Path(\"$1\").glob(\"${2:*.csv}\"))$0"
+    ],
+    "description": "ディレクトリ内のファイル列挙 (ryomamoyr 由来)"
+  },
+  "Hydra config (notebook)": {
+    "prefix": "hydra",
+    "body": [
+      "from hydra import compose, initialize",
+      "",
+      "with initialize(config_path=\"${1:../config}\", version_base=None):",
+      "    cfg = compose(config_name=\"${2:config.yaml}\")",
+      "$0"
+    ],
+    "description": "Hydra config を notebook で読む (ryomamoyr 由来)"
+  },
+  "if __name__ == __main__": {
+    "prefix": "main",
+    "body": [
+      "if __name__ == \"__main__\":",
+      "    $0"
+    ],
+    "description": "スクリプトの main ガード"
+  },
+  "argparse template": {
+    "prefix": "argp",
+    "body": [
+      "import argparse",
+      "",
+      "def parse_args() -> argparse.Namespace:",
+      "    parser = argparse.ArgumentParser(description=\"$1\")",
+      "    parser.add_argument(\"--input\", type=Path, required=True)",
+      "    parser.add_argument(\"--output\", type=Path, required=True)",
+      "    return parser.parse_args()",
+      "",
+      "",
+      "def main() -> None:",
+      "    args = parse_args()",
+      "    $0",
+      "",
+      "",
+      "if __name__ == \"__main__\":",
+      "    main()"
+    ],
+    "description": "argparse の入出力テンプレ"
+  }
+}

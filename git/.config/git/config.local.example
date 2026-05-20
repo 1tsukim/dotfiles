@@ -1,0 +1,10 @@
+# config.local.example — git user identity テンプレート（公開）
+# このファイルを config.local にコピーして自分の値で埋めてください。
+#   cp config.local.example config.local
+#
+# config.local は .gitignore で除外されているため git に入りません。
+# config から [include] path = ~/.config/git/config.local で読み込まれます。
+
+[user]
+	name = Your Name
+	email = your-email@example.com

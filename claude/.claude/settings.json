@@ -1,0 +1,208 @@
+{
+  "env": {
+    "EDITOR": "cursor --wait",
+    "VISUAL": "cursor --wait",
+    "CLAUDE_CODE_NO_FLICKER": "1"
+  },
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "Skill",
+      "Read",
+      "Read(**)",
+      "Glob",
+      "Grep",
+      "LSP",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(which:*)",
+      "Bash(pwd:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(file:*)",
+      "Bash(stat:*)",
+      "Bash(echo:*)",
+      "Bash(gh:*)",
+      "Bash(aws:*)",
+      "Write(.tmp/**)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__serena",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_wait_for",
+      "Bash(rg:*)",
+      "Bash(fd:*)",
+      "Bash(bat:*)",
+      "Bash(eza:*)",
+      "Bash(jq:*)",
+      "Bash(xargs:*)",
+      "Bash(uv:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(touch:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(trash:*)",
+      "Bash(chmod:*)",
+      "Bash(ln:*)",
+      "Bash(marp:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git stash list)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git config --get*)"
+    ],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm -rf /*)",
+      "Read(.env.*)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Read(**/*token*)",
+      "Read(**/*key*)",
+      "Read(**/.aws/**)",
+      "Read(**/.ssh/**)",
+      "Read(**/credentials)",
+      "Read(**/credentials.*)",
+      "Read(**/*credential*)",
+      "Read(**/*secret*)",
+      "Read(**/*password*)",
+      "Write(.env*)",
+      "Write(**/secrets/**)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm remove:*)",
+      "Bash(xargs rm:*)",
+      "Bash(xargs trash:*)",
+      "Bash(xargs sh:*)",
+      "Bash(xargs bash:*)",
+      "Bash(xargs sudo:*)",
+      "Bash(*xargs rm*)",
+      "Bash(*xargs *rm *)"
+    ]
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/notify.sh notification"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/notify.sh stop"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/notify.sh subagent-stop"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-dangerous-git.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-dangerous-aws.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-dangerous-misc.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-sensitive-bash.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-s3-cp-overwrite.sh"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '\"[\\(now | strftime(\"%Y-%m-%d %H:%M:%S\"))] \\(.tool_input.command)\"' >> ~/.claude/bash-history.log 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-sensitive-files.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/auto-format-python.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ git status --short 2>/dev/null || echo '(not a git repo)'; } | jq -Rs '{hookSpecificOutput:{hookEventName:\"SessionStart\",additionalContext:(\"git status:\\n\" + .)}}' 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh",
+    "padding": 0
+  },
+  "alwaysThinkingEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized",
+  "skipAutoPermissionPrompt": true,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

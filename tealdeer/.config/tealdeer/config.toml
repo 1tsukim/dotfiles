@@ -1,0 +1,1 @@
+# cache_dir は明示せず XDG default (~/.cache/tealdeer) に任せる

@@ -1,0 +1,97 @@
+# ~/.alias — エイリアス集（~/.zshrc から切り出し + ryomamoyr/dotfile から拝借）
+# zshrc 末尾の `source ~/.alias` で読み込まれる。bash/zsh 両対応。
+
+# ========== アプリ起動 ==========
+alias n="open /Applications/Notion.app"
+alias c="open /Applications/Cursor.app"
+alias v='open -a "Visual Studio Code"'
+alias s="open /Applications/Slack.app"
+alias b="open /Applications/Brave\ Browser.app"  # Brave Browser.app はスペース注意
+alias f="open /System/Library/CoreServices/Finder.app"
+alias q='open -a "QuickTime Player"'
+alias e='open -a "Microsoft Excel"'
+
+# ========== venv 起動 ==========
+alias act='source .venv/bin/activate'
+
+# ========== cd 短縮 ==========
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias desktop='cd ~/Desktop'
+
+# ========== eza: ls の代替（Git連携・カラー表示） ==========
+alias ls='eza'
+alias ll='eza -lh --git --time-style=long-iso'
+alias la='eza -lhA --git --time-style=long-iso'
+alias lt='eza --tree --level=2 --git-ignore'
+
+# ========== 削除/上書き安全装置 ==========
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='trash'  # 素の rm は復元不可。trash なら Finder ゴミ箱経由で復元可能
+
+# ========== dotfile 編集ショートカット ==========
+alias zshrc="open $ZDOTDIR/.zshrc"
+alias .alias="open $ZDOTDIR/.alias"
+alias func="open $ZDOTDIR/.function"
+alias sshdir="open ~/.ssh"
+
+# ========== git 短縮 → zsh-abbr ($ZDOTDIR/.abbr) に移管 ==========
+
+# ========== AWS EC2: 起動・停止・リスタート ==========
+# 実体は .function の ec2_start / ec2_stop / ec2_restart。
+# インスタンス ID は local.zsh の env var から注入。
+# 再起動権限が無い環境向けに stop→wait→start で代替。
+alias start_dev1='ec2_start   $EC2_DEV1'
+alias stop_dev1='ec2_stop     $EC2_DEV1'
+alias restart_dev1='ec2_restart $EC2_DEV1'
+
+alias start_dev2='ec2_start   $EC2_DEV2'
+alias stop_dev2='ec2_stop     $EC2_DEV2'
+alias restart_dev2='ec2_restart $EC2_DEV2'
+
+alias start_dev3='ec2_start   $EC2_DEV3'
+alias stop_dev3='ec2_stop     $EC2_DEV3'
+alias restart_dev3='ec2_restart $EC2_DEV3'
+
+alias start_train='ec2_start   $EC2_TRAIN'
+alias stop_train='ec2_stop     $EC2_TRAIN'
+alias restart_train='ec2_restart $EC2_TRAIN'
+
+# ========== AWS Admin プロファイル ==========
+# aws() 関数（.function 側で定義）を経由するため rm/delete-* は自動ブロック。
+# プロファイル名は local.zsh の $AWS_PROFILE_ADMIN から注入。
+# 使用例: awsadmin s3 cp ./file s3://bucket/path/
+alias awsadmin='aws --profile $AWS_PROFILE_ADMIN'
+
+# ========== replayd 再起動（画面共有後の CPU 食い続け対策） ==========
+alias kill-replayd='kill -9 $(pgrep replayd)'
+
+# ========== ryomamoyr/dotfile から拝借（2026-05-13） ==========
+
+# クリップボードに流し込む: copy file.txt
+alias copy='pbcopy <'
+
+# timg にデフォルトオプション（画像 inline 表示）
+alias timg='timg -pk --grid=1'
+
+# クリップボード翻訳（plamo-translate）
+alias tt='pbpaste | plamo-translate'
+
+# AWS EC2: 起動中インスタンス一覧
+alias ec2_running='aws ec2 describe-instances --output=table --query "Reservations[].Instances[?State.Name=='"'"'running'"'"'][].{InstanceId: InstanceId, PrivateIp: join('"'"', '"'"', NetworkInterfaces[].PrivateIpAddress), GlobalIP: join('"'"', '"'"', NetworkInterfaces[].Association.PublicIp), Platform:Platform, State: State.Name, SecurityGroupId: join('"'"', '"'"', SecurityGroups[].GroupId) ,Name: Tags[?Key=='"'"'Name'"'"'].Value|[0]}"'
+
+# AWS EC2: 全インスタンス一覧
+alias ec2_all='aws ec2 describe-instances --output=table --query "Reservations[].Instances[].{InstanceId: InstanceId, PrivateIp: join('"'"', '"'"', NetworkInterfaces[].PrivateIpAddress), GlobalIP: join('"'"', '"'"', NetworkInterfaces[].Association.PublicIp), Platform:Platform, State: State.Name, SecurityGroupId: join('"'"', '"'"', SecurityGroups[].GroupId) ,Name: Tags[?Key=='"'"'Name'"'"'].Value|[0]}"'
+
+# ========== junegunn/everything.fzf 拝借（2026-05-20） ==========
+# 実体は ~/.local/bin/{claude,docker,pr,rg}.fzf（MIT、everything.fzf を symlink/wrapper）
+# claude.fzf: ~/.claude/history.jsonl を fzf でブラウズ→tmux pane 復帰 or claude -r 再開
+alias cl='claude.fzf'
+# docker.fzf: 起動中コンテナ + ライブログ + メモリ表示。Enter exec、Ctrl-S stop、Ctrl-T top
+alias dk='docker.fzf'
+# pr.fzf: gh pr list を fzf。Enter で checkout、Ctrl-O ブラウザ、Ctrl-V vim view
+alias prf='pr.fzf'
+# rg.fzf: live-search 版 ripgrep + fzf。Alt-A 全選択→vim quickfix で一括処理（既存 rgf と併存）
+alias rgfl='rg.fzf'

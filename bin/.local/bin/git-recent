@@ -1,0 +1,13 @@
+#!/bin/bash
+# 最近 commit した順にローカルブランチ一覧 (上位 20 件)
+# Background: ファイル名が git-* なので `git recent` でも呼べる (git のサブコマンド機能)。
+# Usage: git-recent [件数]  (デフォルト 20)
+
+set -euo pipefail
+
+count="${1:-20}"
+
+git for-each-ref --sort=-committerdate refs/heads/ \
+  --format='%(committerdate:relative)%09%(refname:short)%09%(authorname)' \
+  | head -n "$count" \
+  | column -t -s $'\t'

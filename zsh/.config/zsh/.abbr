@@ -1,0 +1,18 @@
+# ~/.config/zsh/.abbr — zsh-abbr の略語定義集
+# 端末から `abbr add KEY="VAL"` で追加した内容もこのファイルに append される。
+# 手書きと自動追記が両立する。
+
+# ---- git 短縮 (Space で展開・履歴に展開後の形が残る) ----
+abbr g="git"
+abbr gs="git status"
+abbr gst="git status"
+abbr ga="git add"
+abbr gc="git commit"
+abbr gco="git checkout"
+abbr gd="git diff"
+abbr gp="git push"
+abbr gf="git fetch"
+abbr gb="git branch"
+
+# ---- Python ----
+abbr py="python3"

@@ -1,0 +1,46 @@
+#!/bin/bash
+# AWS S3 へのアップロード (同名 key 存在確認付き)
+# Background: 上書き事故を防ぐため、アップロード前に aws s3 ls で存在確認する。
+#             同名 key があれば中止し、明示的なコマンドを案内する。
+# Usage: s3-safe-cp <local-file> <s3://bucket/key>
+
+set -euo pipefail
+
+PROFILE_FLAG=(--profile "${AWS_PROFILE_ADMIN:?AWS_PROFILE_ADMIN is not set; define it in local.zsh}")
+
+if [ $# -ne 2 ]; then
+  echo "usage: s3-safe-cp <local-file> <s3://bucket/key>" >&2
+  exit 1
+fi
+
+local_file="$1"
+s3_path="$2"
+
+if [ ! -f "$local_file" ]; then
+  echo "❌ ローカルファイルが見つかりません: $local_file" >&2
+  exit 1
+fi
+
+case "$s3_path" in
+  s3://*) ;;
+  *)
+    echo "❌ S3 パスは s3:// で始まる必要があります: $s3_path" >&2
+    exit 1
+    ;;
+esac
+
+# 末尾スラッシュなら key を local_file の basename で補完
+case "$s3_path" in
+  */) s3_path="${s3_path}$(basename "$local_file")" ;;
+esac
+
+existing=$(aws s3 ls "$s3_path" "${PROFILE_FLAG[@]}" 2>/dev/null || true)
+if [ -n "$existing" ]; then
+  echo "❌ 既に存在: $existing" >&2
+  echo "上書きしたい場合は明示的に:" >&2
+  echo "  aws s3 cp '$local_file' '$s3_path' ${PROFILE_FLAG[*]}" >&2
+  exit 1
+fi
+
+echo "→ uploading $local_file -> $s3_path"
+exec aws s3 cp "$local_file" "$s3_path" "${PROFILE_FLAG[@]}"

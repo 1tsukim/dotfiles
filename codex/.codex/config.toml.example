@@ -1,0 +1,20 @@
+# config.toml.example — Codex CLI 設定テンプレート（公開）
+# このファイルを config.toml にコピーして、絶対パスを自分の値に置き換えてください。
+#   cp config.toml.example config.toml
+#   # config.toml 内の /Users/USERNAME を実際のホームパスに書き換え
+#
+# config.toml は .gitignore で除外されているため git には含まれません。
+# Codex CLI は ~/.codex/config.toml を読みます（include 機構は無いので 1 ファイルに集約）。
+
+# Codex CLI が信頼する project root（絶対パスマッチ、~ 展開不可のため hardcode 必須）
+[projects."/Users/USERNAME/.claude/skills"]
+trust_level = "trusted"
+
+[projects."/Users/USERNAME"]
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 2
+
+[features]
+realtime_conversation = true

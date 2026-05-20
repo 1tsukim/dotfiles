@@ -1,0 +1,11 @@
+# Ghostty config — cmux 内蔵 Ghostty レンダラが参照する
+# cmux schema が公式に指定するパス。cmux UI 設定 (~/.config/cmux/) とは別管理。
+
+# カーソル: 縦棒 (bar) + 点滅 + 緑 (#33ff33, iTerm2 と統一)
+cursor-style = bar
+cursor-style-blink = true
+cursor-color = #33ff33
+
+# 背景: 深めのダーク (#0d1117, GitHub Dark 相当)。ghostty デフォルトテーマだと
+# 明るく感じることがあるので背景色だけ明示固定。他の色は触らない。
+background = #0d1117
