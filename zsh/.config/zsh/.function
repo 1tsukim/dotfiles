@@ -273,6 +273,38 @@ jk() {
   echo "カーネル '$name' を登録しました"
 }
 
+# ========== cs: クリップボードの画像を ~/Downloads に保存 ==========
+# 使い方:
+#   cs                  → ~/Downloads/clip-YYYYMMDD-HHMMSS.png
+#   cs hoge             → ~/Downloads/hoge.png
+#   cs -e               → 保存後 Preview を起動（⌘⇧A で Markup ツール）
+#   cs -e hoge          → 名前指定 + Preview
+#   cs -d ~/work hoge   → 保存先ディレクトリ変更
+cs() {
+    local open_after=0
+    local dir="$HOME/Downloads"
+    while [[ "$1" == -* ]]; do
+        case "$1" in
+            -e) open_after=1; shift ;;
+            -d) dir="$2"; shift 2 ;;
+            *)  echo "cs: unknown option $1" >&2; return 1 ;;
+        esac
+    done
+    if ! command -v pngpaste &>/dev/null; then
+        echo "cs: pngpaste 未導入。brew install pngpaste" >&2
+        return 1
+    fi
+    local name="${1:-clip-$(date +%Y%m%d-%H%M%S)}"
+    local dst="${dir%/}/${name}.png"
+    if pngpaste "$dst" 2>/dev/null; then
+        echo "saved: $dst"
+        (( open_after )) && open -a Preview "$dst"
+    else
+        echo "cs: クリップボードに画像なし" >&2
+        return 1
+    fi
+}
+
 # ========== o: open ラッパー（mathiasbynens/dotfiles 由来） ==========
 # 引数なし → Finder で現在のディレクトリを開く / 引数あり → そのパスを open
 # 使い方: o          # カレントを Finder で

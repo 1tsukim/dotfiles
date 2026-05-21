@@ -15,6 +15,7 @@ brew "imagemagick"
 brew "jq"
 brew "node"
 brew "p7zip"
+brew "pngpaste"
 brew "poppler"
 brew "ripgrep"
 brew "ruby" # junegunn/everything.fzf の claude.fzf 用（keg-only、PATH 不変更）
