@@ -59,6 +59,14 @@ alias start_train='ec2_start   $EC2_TRAIN'
 alias stop_train='ec2_stop     $EC2_TRAIN'
 alias restart_train='ec2_restart $EC2_TRAIN'
 
+alias start_train99='ec2_start   $EC2_TRAIN99'
+alias stop_train99='ec2_stop     $EC2_TRAIN99'
+alias restart_train99='ec2_restart $EC2_TRAIN99'
+
+alias start_dev99='ec2_start   $EC2_DEV99'
+alias stop_dev99='ec2_stop     $EC2_DEV99'
+alias restart_dev99='ec2_restart $EC2_DEV99'
+
 # ========== AWS Admin プロファイル ==========
 # aws() 関数（.function 側で定義）を経由するため rm/delete-* は自動ブロック。
 # プロファイル名は local.zsh の $AWS_PROFILE_ADMIN から注入。
@@ -80,10 +88,10 @@ alias timg='timg -pk --grid=1'
 alias tt='pbpaste | plamo-translate'
 
 # AWS EC2: 起動中インスタンス一覧
-alias ec2_running='aws ec2 describe-instances --output=table --query "Reservations[].Instances[?State.Name=='"'"'running'"'"'][].{InstanceId: InstanceId, PrivateIp: join('"'"', '"'"', NetworkInterfaces[].PrivateIpAddress), GlobalIP: join('"'"', '"'"', NetworkInterfaces[].Association.PublicIp), Platform:Platform, State: State.Name, SecurityGroupId: join('"'"', '"'"', SecurityGroups[].GroupId) ,Name: Tags[?Key=='"'"'Name'"'"'].Value|[0]}"'
+alias ec2_running='aws ec2 describe-instances --profile $AWS_PROFILE_SSM --output=table --query "Reservations[].Instances[?State.Name=='"'"'running'"'"'][].{InstanceId: InstanceId, PrivateIp: join('"'"', '"'"', NetworkInterfaces[].PrivateIpAddress), GlobalIP: join('"'"', '"'"', NetworkInterfaces[].Association.PublicIp), Platform:Platform, State: State.Name, SecurityGroupId: join('"'"', '"'"', SecurityGroups[].GroupId) ,Name: Tags[?Key=='"'"'Name'"'"'].Value|[0]}"'
 
 # AWS EC2: 全インスタンス一覧
-alias ec2_all='aws ec2 describe-instances --output=table --query "Reservations[].Instances[].{InstanceId: InstanceId, PrivateIp: join('"'"', '"'"', NetworkInterfaces[].PrivateIpAddress), GlobalIP: join('"'"', '"'"', NetworkInterfaces[].Association.PublicIp), Platform:Platform, State: State.Name, SecurityGroupId: join('"'"', '"'"', SecurityGroups[].GroupId) ,Name: Tags[?Key=='"'"'Name'"'"'].Value|[0]}"'
+alias ec2_all='aws ec2 describe-instances --profile $AWS_PROFILE_SSM --output=table --query "Reservations[].Instances[].{InstanceId: InstanceId, PrivateIp: join('"'"', '"'"', NetworkInterfaces[].PrivateIpAddress), GlobalIP: join('"'"', '"'"', NetworkInterfaces[].Association.PublicIp), Platform:Platform, State: State.Name, SecurityGroupId: join('"'"', '"'"', SecurityGroups[].GroupId) ,Name: Tags[?Key=='"'"'Name'"'"'].Value|[0]}"'
 
 # ========== junegunn/everything.fzf 拝借（2026-05-20） ==========
 # 実体は ~/.local/bin/{claude,docker,pr,rg}.fzf（MIT、everything.fzf を symlink/wrapper）

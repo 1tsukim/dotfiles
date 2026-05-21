@@ -1,7 +1,7 @@
 {
   "env": {
-    "EDITOR": "cursor --wait",
-    "VISUAL": "cursor --wait",
+    "EDITOR": "nano",
+    "VISUAL": "nano",
     "CLAUDE_CODE_NO_FLICKER": "1"
   },
   "permissions": {
