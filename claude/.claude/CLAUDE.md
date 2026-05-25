@@ -57,3 +57,11 @@ GitHub のリポジトリ・ファイル・PR・Issue・コード検索などに
 ## `git checkout` は必ず確認
 
 `git checkout` は未コミット変更を踏み消す可能性があるため、実行前にユーザーの承認を取る。
+
+## 成果物の保存先
+
+図・CSV・レポート等のファイル成果物を保存するときは、推奨される場所の提示をしつつ必ずユーザーに保存先を確認する。
+
+## ad-hoc な Python 実行: `~/project/scratch-py`
+
+`uv run --project ~/project/scratch-py python ...`（torch/cv2 等の重い依存は別環境）。
