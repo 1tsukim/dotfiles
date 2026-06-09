@@ -350,81 +350,8 @@ APPLESCRIPT
 o() { open "${@:-.}"; }
 
 # ============================================================
-# cmux: workspace 操作（cowboy/dotfiles の tm/qq 由来、cmux 用に再実装）
-# tmux 版（tm/pj/pjs）と並列に存在。cmux.app + `cmux` CLI が前提。
+# cmux: workspace 操作（cmux.app + `cmux` CLI が前提）
 # ============================================================
-
-# cm: workspace を attach、無ければ作成（tm の cmux 版）
-#   cm                 # 直近の workspace を選択
-#   cm ~/some/path     # ディレクトリ → cmux <path>（標準動作）
-#   cm <name>          # 名前部分一致で既存検索、無ければ新規
-cm() {
-    local arg="$1"
-    if [[ -z "$arg" ]]; then
-        local ws
-        ws=$(cmux list-workspaces 2>/dev/null | awk '{print $2}' | head -1)
-        [[ -n "$ws" ]] && cmux select-workspace --workspace "$ws"
-        return
-    fi
-    if [[ -d "$arg" ]]; then
-        cmux "$arg"
-        return
-    fi
-    local ws
-    ws=$(cmux list-workspaces 2>/dev/null | grep -i -- "$arg" | head -1 | awk '{print $2}')
-    if [[ -n "$ws" ]]; then
-        cmux select-workspace --workspace "$ws"
-    else
-        cmux new-workspace --name "$arg" --focus true >/dev/null
-    fi
-}
-
-# qq: 新 workspace + エディタ起動 + シェル分割（cowboy/dotfiles の qq 由来）
-#   qq                 # カレントで 2 ペイン
-#   qq 3               # 3 ペイン
-#   qq 3 ~/marp-themes # 指定ディレクトリで 3 ペイン
-qq() {
-    local panes="${1:-2}"
-    local dir="${2:-$PWD}"
-    dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "qq: dir not found: $2" >&2; return 1; }
-
-    cmux new-workspace \
-        --cwd "$dir" \
-        --command "${VISUAL:-${EDITOR:-vim}} ." \
-        --focus true \
-        --name "$(basename "$dir")" >/dev/null
-
-    local ws
-    ws=$(cmux current-workspace)
-
-    local i
-    for (( i = 1; i < panes; i++ )); do
-        cmux new-split right --workspace "$ws" --focus false >/dev/null
-    done
-}
-alias q2='qq 2'
-alias q3='qq 3'
-alias q4='qq 4'
-
-# qb: エディタ + ブラウザ並列（Marp プレビュー想定）
-#   qb                              # PWD + http://localhost:8080
-#   qb ~/marp-themes                # 指定ディレクトリ
-#   qb ~/marp-themes http://...     # URL も指定
-qb() {
-    local dir="${1:-$PWD}"
-    local url="${2:-http://localhost:8080}"
-    dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "qb: dir not found: $1" >&2; return 1; }
-
-    cmux new-workspace \
-        --cwd "$dir" \
-        --command "${VISUAL:-${EDITOR:-vim}} ." \
-        --focus true \
-        --name "$(basename "$dir")" >/dev/null
-
-    local ws
-    ws=$(cmux current-workspace)
-    cmux new-pane --type browser --direction right --url "$url" --workspace "$ws" --focus false >/dev/null
-}
 
 # cmc: Claude Code 常駐 workspace（dir + claude 起動 + 右にシェル）
 #   cmc                # PWD で Claude 起動
@@ -444,9 +371,26 @@ cmc() {
     cmux new-split right --workspace "$ws" --focus false >/dev/null
 }
 
-# cms: 現在の workspace に Claude split を右に追加
-cms() {
-    cmux new-split right --command "claude" --focus true >/dev/null
+# wk: 4 ペインの作業 workspace（yazi + claude×2 + zsh、2×2 グリッド）
+#   ┌──────────┬──────────┐
+#   │  yazi    │ claude#1 │
+#   ├──────────┼──────────┤
+#   │  zsh     │ claude#2 │
+#   └──────────┴──────────┘
+#   wk                 # PWD で起動
+#   wk ~/some/path     # 指定ディレクトリで起動
+wk() {
+    local dir="${1:-$PWD}"
+    dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "wk: dir not found: $1" >&2; return 1; }
+
+    # 2×2 レイアウトを JSON で一括定義（new-workspace --layout）
+    local layout='{"direction":"horizontal","split":0.5,"children":[{"direction":"vertical","split":0.5,"children":[{"pane":{"surfaces":[{"type":"terminal","command":"yazi"}]}},{"pane":{"surfaces":[{"type":"terminal"}]}}]},{"direction":"vertical","split":0.5,"children":[{"pane":{"surfaces":[{"type":"terminal","command":"claude"}]}},{"pane":{"surfaces":[{"type":"terminal","command":"claude"}]}}]}]}'
+
+    cmux new-workspace \
+        --cwd "$dir" \
+        --layout "$layout" \
+        --focus true \
+        --name "wk:$(basename "$dir")" >/dev/null
 }
 
 # ============================================================
