@@ -66,17 +66,23 @@ fi
 # bat: TwoDarkテーマ（mizchi の dotfiles 由来）
 export BAT_THEME="TwoDark"
 
-# fzf-tab: タブ補完を fzf 画面で（compinit 必須・autosuggestions 等より前にロード）
-autoload -Uz compinit && compinit
-source "$ZDOTDIR/plugins/fzf-tab/fzf-tab.plugin.zsh"
+# 対話的な行編集 UX 専用プラグインは対話シェルでのみロードする。
+# 非対話シェル（Claude Code 等が Bash ツールごとに spawn/kill する zsh）では
+# 無価値なうえ、zsh-abbr が起動ごとに張るクロスセッション・ジョブが
+# init 途中の kill で残骸化し "job-queue ... timed out" 警告の原因になる。
+if [[ -o interactive ]]; then
+  # fzf-tab: タブ補完を fzf 画面で（compinit 必須・autosuggestions 等より前にロード）
+  autoload -Uz compinit && compinit
+  source "$ZDOTDIR/plugins/fzf-tab/fzf-tab.plugin.zsh"
 
-# zsh-abbr: 略語を Space/Enter で実コマンドに展開（履歴に展開後の形が残る）
-source "$ZDOTDIR/plugins/zsh-abbr/zsh-abbr.plugin.zsh"
+  # zsh-abbr: 略語を Space/Enter で実コマンドに展開（履歴に展開後の形が残る）
+  source "$ZDOTDIR/plugins/zsh-abbr/zsh-abbr.plugin.zsh"
 
-# zsh-autosuggestions: 履歴ベースの ghost text 提案（→ キーで受け入れ）
-source "$ZDOTDIR/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'
+  # zsh-autosuggestions: 履歴ベースの ghost text 提案（→ キーで受け入れ）
+  source "$ZDOTDIR/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+  zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'
+fi
 
 # マシン固有設定（local.zsh: env var、git 管理外）と secrets.zsh（認証情報、任意）
 # .function / .alias より先に読んで、関数・alias から env var を参照できるようにする
