@@ -1,0 +1,33 @@
+# ~/.config/yazi/keymap.toml — システムクリップボード連携
+# Yazi 26.1.22。c プレフィックスの desc を一律で見やすく上書き。
+# run はそれぞれ yazi 既定 (macOS) と同等の挙動を維持。
+
+# c c → 絶対パス全体  例: /Users/me/Desktop/foo.png
+[[mgr.prepend_keymap]]
+on   = [ "c", "c" ]
+run  = 'shell -- printf "%s" $@ | pbcopy'
+desc = "絶対パス（フル）"
+
+# c d → 親ディレクトリのパス  例: /Users/me/Desktop
+[[mgr.prepend_keymap]]
+on   = [ "c", "d" ]
+run  = 'shell -- printf "%s" "$(dirname $1)" | pbcopy'
+desc = "親ディレクトリのパス"
+
+# c f → ファイル名（拡張子込）  例: foo.png
+[[mgr.prepend_keymap]]
+on   = [ "c", "f" ]
+run  = 'shell -- printf "%s" "$(basename $1)" | pbcopy'
+desc = "ファイル名（拡張子込）"
+
+# c i → 画像の中身（ビットマップ）を Slack 等に貼れる形でクリップへ (PNG/JPG)
+[[mgr.prepend_keymap]]
+on   = [ "c", "i" ]
+run  = 'shell -- ~/.local/bin/img2clip "$0"'
+desc = "画像の中身（ビットマップ）"
+
+# c n → 拡張子なしファイル名（使わないので無効化）
+[[mgr.prepend_keymap]]
+on   = [ "c", "n" ]
+run  = "noop"
+desc = "(無効)"

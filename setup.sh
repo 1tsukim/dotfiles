@@ -48,7 +48,7 @@ fi
 
 # 4. Stow で symlink 展開
 info "Stowing dotfile packages..."
-PACKAGES=(zsh git tmux tealdeer karabiner claude codex cmux cursor ghostty bin)
+PACKAGES=(zsh git tmux tealdeer karabiner claude codex cmux cursor ghostty yazi bin)
 for pkg in "${PACKAGES[@]}"; do
     [ -d "$pkg" ] || continue
     stow --target="$HOME" --restow "$pkg" 2>&1 | grep -v "^$" || true
