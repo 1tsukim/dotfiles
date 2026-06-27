@@ -6,10 +6,35 @@ paths:
   - "**/eda/**/*.py"
 ---
 
-# データ分析・Notebook 作業（仮説駆動）
+# Data analysis and notebook work
 
-分析依頼を受けたら、まず「何を明らかにしたいか」を 1〜2 文で言語化する。仮説を立ててから検証コードを書き、データを眺めて終わらない。仮説が棄却されたらその事実も発見として報告する。「予想と違った点」「意外な発見」を積極的に拾う。
+Use goal-driven analysis. Do not just inspect data and report surface-level observations.
 
-Jupyter 想定ではセル単位に分けて提示。セル先頭に役割コメント（例: `# 仮説検証: 〇〇`）。
+Before writing analysis code, state the analysis goal in 1-2 sentences:
+what should be clarified, compared, explained, or decided?
 
-詳細な手順駆動が要るときは `staged-work` skill を併用する。
+## Analysis discipline
+
+* Start with a lightweight data sanity check: schema, row count, missingness,
+  duplicates, time range, units, and grain.
+* Form an explicit hypothesis or question before each non-trivial analysis step.
+* Write code to test that hypothesis or answer that question.
+* Treat rejected hypotheses as findings, not failures.
+* Actively look for unexpected patterns, but report them only when supported by data.
+* Distinguish facts from interpretation: state what the data shows, then what it may imply.
+
+## Notebook structure
+
+For Jupyter-oriented work, present code in separate cells. Start each cell with a short role comment, for example:
+
+```python
+# Sanity check: schema & missing values
+# Hypothesis: delays concentrate at specific stations
+# Finding: actual result vs hypothesis
+```
+
+Keep each cell focused on one purpose: load, clean, check, analyze, visualize, or summarize.
+
+## When to use staged work
+
+Use the `staged-work` skill when the analysis needs a step-by-step plan, multiple checkpoints, or a longer investigation workflow.
