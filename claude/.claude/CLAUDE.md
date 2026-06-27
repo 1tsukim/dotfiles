@@ -1,57 +1,62 @@
-# CLAUDE.md (User-global)
+# CLAUDE.md
 
-すべてのプロジェクトで参照されるユーザーグローバル指示。文脈依存のルールは `~/.claude/rules/` に分割した。
+## Global Instructions
 
-**注意: `~/.claude/`をはじめとした dotfiles は symlink。** 実体は `~/ghq/github.com/1tsukim/dotfiles/` 配下（このファイル含む）。編集ツールは symlink 経由の書き込みを拒否するため、実体パスを直接 Read/Edit する。変更後のコミットは dotfiles リポジトリ側で行う。
+* Respond in Japanese unless explicitly requested otherwise.
+* Write code comments in Japanese unless the project convention differs.
+* The user often uses voice dictation; interpret obvious transcription mistakes
+  generously (e.g., "Cloud Code" → "Claude Code").
 
-## 言語
+## Dotfiles
 
-- 回答は日本語
-- コードコメントも日本語
+Files under `~/.claude/` and related dotfiles are symlinks. The real files are under:
 
-## 音声入力の解釈
+```text
+~/ghq/github.com/1tsukim/dotfiles/
+```
 
-音声入力でプロンプトを打つことがあるため、誤字・誤変換は音声認識の誤認識として解釈する（例：「Cloud Code」→「Claude Code」）。
+When reading or editing these, use the real path directly. After changes, commit
+them in the dotfiles repository.
 
-## 行動原則
+## Working Principles
 
-- 論理的で無駄のない実装を心がけつつ、品質保証と記録（テスト・コミット粒度）の手は抜かない
-- 動作を証明できるまでタスクを完了としない（テストパス／レンダリング確認／実行成功のいずれか）
-- 未知の既存コードは読んでから編集する（rg/Read で確認してから変更を始める）
-- 「変更不要」「問題なし」と結論する前に、必ずその根拠を明示する（ソース未確認のまま「正確です」と言わない）
-- パッケージ・ライブラリを選定するときは、選んだ理由と代替案を必ず示す
-- ad-hoc な Python 実行は `~/project/scratch-py` を利用する
-  - `uv run --project ~/project/scratch-py python ...`（torch/cv2 等の重い依存は別環境）
-- 図・CSV・レポート等のファイル成果物を保存するときは、推奨される場所の提示をしつつ必ずユーザーに保存先を確認する
+* Read existing code before editing it (use `rg` / `Read` first).
+* Prefer logical, lean implementations, but never skip quality assurance or
+  record-keeping (tests, commit granularity).
+* Do not claim a task is complete until the result is verified — tests passing,
+  successful execution, rendering checks, or other concrete evidence.
+* Before saying "no change needed" or "this is correct", state the evidence.
+* When selecting a package or library, explain why it was chosen and mention
+  reasonable alternatives.
+* For ad-hoc Python, use `uv run --project ~/project/scratch-py python ...`
+  (heavy deps such as `torch` / `cv2` belong in a separate environment).
+* When producing file artifacts (diagrams, CSVs, reports), suggest a save
+  location and confirm the destination with the user before saving.
 
+## Task Strategy
 
-## 並列化と subagent（タスク受付時に最初に検討）
+For non-trivial tasks, briefly consider whether independent investigation,
+review, or implementation work can be delegated to subagents.
 
-タスクを受けたら最初に「並列化できる subtask は何か」「subagent に投げて main context を空けられるか」を洗い出してから動く。
+Use subagents only when they reduce main-context clutter or enable meaningful
+parallel work. Do not use them for simple lookups or tightly sequential tasks.
 
-- 互いに独立な 2+ task は Agent ツールで **1 message 内に並列 dispatch**（複数 tool 呼び出し）
-- 3+ クエリ規模の探索（rg/Read を多数）は **Explore / general-purpose subagent** に投げ、main は要約だけ受け取って context を節約する
-- 自分の生成物（コード・skill・prompt）の評価は**新規 subagent** に依頼する。自己再読は bias の温床（`empirical-prompt-tuning` skill の方針）
-- Long-running batch（Bash の 10 分上限超え、多 repo への一括実行等）は subagent dispatch か `run_in_background` + Monitor で逃がす
+## Command Preferences
 
-避ける：
+* Prefer `rg` over `grep`.
+* Prefer `gh` over `WebFetch` for GitHub access.
+* Prefer `trash` over `rm` for file deletion.
+* Do not run `git checkout` when it may overwrite uncommitted changes without
+  user approval.
+* Do not use raw `git commit`; use the `commit` skill.
 
-- 直列依存（前 task の結果が次 task 入力）を無理に並列化する
-- 1-step / short lookup を subagent に投げる（overhead がコストに見合わない）
-- subagent と main で同じ作業を二重に走らせる
+## Style
 
-## 使用コマンド
+Write in concise, polite Japanese. Avoid:
 
-- 検索: `grep` より `rg`
-- GitHub アクセス: `WebFetch` より `gh`
-- 削除: `rm` より `trash`
-- `git checkout` は未コミット変更を踏み消す可能性があるため、実行前にユーザーの承認を取る
-- コミット: `git commit` ではなく必ず `commit` skill を使う
+* preambles and unnecessary apologies
+* filler such as "ちなみに", "一応", "基本的に", "ご質問ありがとうございます"
+* verbose phrasing ("〜することができます" → "〜できます";
+  "設定を変更すること" → "設定変更")
 
-## 文体（出力圧縮：です/ます維持版）
-
-回答は日本語のですます調を維持しつつ、以下は省く：
-
-- 前置き（「ご質問ありがとうございます」「えーと」「まあ」「ちなみに」「一応」「基本的に」）
-- 冗長表現（「〜することができる」→「〜できる」、「〜ということになりますので」→「だから」「→」）
-- 形式名詞による水増し（「設定を変更すること」→「設定変更」、「動いている」→「動作中」）
+Prefer direct, structured explanations with clear next actions.
