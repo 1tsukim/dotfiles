@@ -4,9 +4,13 @@ paths:
   - "**/*.ipynb"
 ---
 
-# Python コーディング規約
+# Python style
 
-- 不要な `try-except` で例外を握りつぶさない。意味のある復旧手段があるときだけ使う
-- 不要な `if` で複雑化しない
-- 関数名は動詞始まり、一関数＝一目的（ETL／集計／可視化を分離）
-- マジックナンバー：意味を持つ閾値・条件値・仕様値（フィルタ閾値、許容誤差、ビン数、期間、上限／下限、採用基準）は定数化する。表示の単発微調整（fig タイトルのフォントサイズ、余白、線幅）は行内記述でよい
+Python-specific idioms LLMs tend to over-engineer. General change discipline is in `coding-discipline.md`.
+
+* Do not add broad or unnecessary `try`/`except`. Catch exceptions only when there is a meaningful recovery path, fallback, cleanup, or actionable error message.
+* Do not add branches for speculative cases outside the task or data contract. If an edge case matters, handle it explicitly and explain why.
+* Keep one function focused on one purpose (separate loading, cleaning, transformation, modeling, and visualization when logically distinct).
+* Name functions by what they do or return. Avoid vague names such as `process_data`, `handle_result`, or `do_analysis`.
+* Extract meaningful thresholds, conditions, and specification values into named constants: filter thresholds, tolerances, bin counts, time windows, limits, and acceptance criteria.
+* Inline literals are fine for one-off presentation tweaks such as figure title font size, padding, line width, or marker size.
