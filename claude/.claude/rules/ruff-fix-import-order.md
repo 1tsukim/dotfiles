@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.py"
+  - "**/*.ipynb"
+---
+
 # ruff check --fix のある repo での import 追加順序
 
 PostToolUse hook で `ruff format && ruff check --fix` が走るリポジトリでは、
