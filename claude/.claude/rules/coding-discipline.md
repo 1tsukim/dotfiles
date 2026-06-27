@@ -8,19 +8,22 @@ paths:
   - "**/*.jsx"
 ---
 
-# コーディング規範（LLM の典型的な失敗を防ぐ）
+# Coding discipline
 
-CLAUDE.md 行動原則と重複する総論は省き、差分のみ記す。
-非自明なコード生成・改変に適用。自明な1行修正・リネームは省略可。
+This rule prevents common LLM coding failures. It only adds details not already covered by `CLAUDE.md`.
 
-## 外科的変更（既存原則に無い差分・最重要）
+Apply this rule to non-trivial code generation or modification. Small obvious edits, simple renames, and one-line fixes may skip it.
 
-- 依頼に直接対応する箇所だけ触る。隣接のコード・コメント・整形を「ついでに改善」しない
-- 既存スタイルに合わせる（自分の好みで書き換えない）
-- 無関係な dead code は指摘に留め消さない。消すのは自分の変更が生んだ orphan（未使用 import/変数/関数）だけ
-- 判定: 変更した全行が依頼に直接トレースできるか
+## Surgical changes
 
-## 最小実装（既存「無駄のない実装」の具体化）
+* Touch only the code directly required by the user's request.
+* Do not opportunistically improve nearby code, comments, formatting, or structure.
+* Match the existing project style; do not rewrite code to personal preference.
+* Do not remove unrelated dead code. Only remove orphaned imports, variables, or functions created by your own change.
+* Check: every changed line should be directly traceable to the request.
 
-- 依頼にない機能・抽象化・設定可能性・あり得ないケースのエラー処理を足さない
-- 「senior engineer が過剰と言わないか」を自問。200 行を 50 行にできるなら書き直す
+## Minimal implementation
+
+* Do not add unrequested features, abstractions, configuration knobs, or speculative error handling.
+* Prefer the smallest implementation that satisfies the request and fits the existing code; add complexity only with a concrete reason you can state.
+* Do not perform large rewrites just because the code could be cleaner.
