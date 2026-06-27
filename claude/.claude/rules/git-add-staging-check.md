@@ -1,27 +1,42 @@
-# git add 後の staged 確認（venv 風 gitignore の巻き込み対策）
+# Git staging completeness check
 
-`.gitignore` に venv テンプレ由来の `lib/`（先頭スラッシュ無し）があると、
-**ルート以外の `src/.../lib/` など任意階層の `lib/` も巻き込む**。
-`git add <dir>` はディレクトリ指定だと ignore 対象を**警告なくスキップ**するため、
-vendored な核がコミットされず silently 取りこぼす。
+After `git add <dir>`, verify that the intended files were actually staged.
 
-## 確認
+`git add <dir>` silently skips files matched by `.gitignore`. Broad unanchored patterns copied from virtualenv templates, such as `lib/`, `bin/`, `build/`, or `include/`, can accidentally exclude source or vendored files at any depth.
 
-`git add <dir>` の後、source ツリー内に venv 風名（`lib/` `bin/` `build/` `include/`）の
-ディレクトリがある、または vendored ディレクトリを新規 add したときは、
-`git status` / `git show --stat`（commit 後）で意図したファイルが staged されたか確認する。
+## Check
 
-取りこぼしの兆候：`git check-ignore -v src/.../lib/foo.py` がヒットする、
-`git status --ignored` に source 配下のファイルが出る。
+Check before committing when adding a whole directory, a new source/vendor tree, or any source-side directory named like an environment directory.
 
-## 根本対処
+```bash
+git status --short
+git diff --cached --stat
+git diff --cached --name-only
+```
 
-巻き込みを止める。いずれか：
+If expected files are missing, inspect ignore matches:
 
-- gitignore をルートにアンカー：`lib/` → `/lib/`（または `venv/lib/`）
-- negation で除外解除：`!src/streamlit_app/lib/`
+```bash
+git check-ignore -v path/to/file
+git status --ignored --short
+```
 
-## 失敗履歴
+Warning signs: source/vendor files appear only as ignored, or `git check-ignore -v` points to a broad pattern such as `lib/`.
 
-- Streamlit アプリ（2026-05）: `.gitignore` の venv 由来 `lib/` が
-  `src/streamlit_app/lib/` を巻き込み、vendored 核が staged されずコミット漏れ。
+## Fix
+
+Prefer narrowing the ignore rule over force-adding files.
+
+```gitignore
+# Too broad: matches lib/ at any depth
+lib/
+
+# Safer
+/lib/
+venv/lib/
+!src/streamlit_app/lib/
+```
+
+Use `git add -f` only as an explicit temporary exception and explain why the ignored file should be committed.
+
+Failure history: Streamlit app, 2026-05 — `lib/` ignored `src/streamlit_app/lib/`, so vendored core files were missing from the commit.
