@@ -4,11 +4,23 @@ paths:
   - "**/*.py"
 ---
 
-# スクリプトの命名（hook 摩擦回避）
+# Script naming to avoid hook false positives
 
-自作スクリプト・ファイル名で `delete-` `terminate-` `purge-` `release-` `revoke-` `deregister-` `disassociate-` `detach-` などのハイフン続きを避ける。これらは `~/.claude/hooks/block-dangerous-aws.sh` の破壊的サブコマンド名パターンに引っかかり、`bash delete-old.sh` 等の実行がブロックされる。
+Avoid naming local scripts like destructive AWS-style subcommands. Patterns such
+as `delete-*`, `terminate-*`, `purge-*`, `release-*`, `revoke-*`, `deregister-*`,
+`disassociate-*`, or `detach-*` may trigger
+`~/.claude/hooks/block-dangerous-aws.sh` and block harmless commands such as
+`bash delete-old.sh`.
 
-- ❌ `delete-old.sh` / `terminate-job.sh` / `purge-cache.sh`
-- ✅ `cleanup_old.sh` / `stop_job.sh` / `clear_cache.sh`（アンダースコア区切り、または別動詞）
+Prefer non-destructive names:
 
-`delete.sh` / `delete_old.sh` / `my-delete.sh` のように **`delete` の直後がハイフン以外** なら通る。回避が難しい既存ファイルがある場合は `mv ~/.claude/hooks/block-dangerous-aws.sh{,.off}` で hook を一時退避してから作業する手があるが、**この操作はユーザーが手動で行う**（`do-not-self-modify-claude-config.md` 参照）。
+* Bad: `delete-old.sh`, `terminate-job.sh`, `purge-cache.sh`
+* Good: `cleanup_old.sh`, `old_file_cleanup.sh`, `clear_cache.sh`
+
+The risky pattern is the destructive verb followed by `-`. Names such as
+`delete.sh`, `delete_old.sh`, or `my-delete.sh` are less likely to match that
+specific hook pattern, but still prefer safer names for new scripts.
+
+If an existing filename is blocked, do not disable or rename Claude hooks yourself.
+Report the block, suggest renaming the local script when reasonable, and follow
+`do-not-self-modify-claude-config.md` for any hook changes.
