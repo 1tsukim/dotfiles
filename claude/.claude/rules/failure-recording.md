@@ -35,5 +35,5 @@
 - いずれもユーザー承認を経てから `~/.claude/` 配下を書き換える
 
 なぜ重要か: 失敗を Claude が自発判断で rules に書き込むと、
-`claude-config-safety.md`「明示指示があった時だけ `~/.claude/` を改変」と矛盾し、
+`do-not-self-modify-claude-config.md`「明示指示があった時だけ `~/.claude/` を改変」と矛盾し、
 防御層を自分で剥がす結果になる。**提案にとどめ承認を経る** のが安全装置。
