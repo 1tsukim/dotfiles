@@ -13,6 +13,7 @@ brew "ghq"
 brew "htop"
 brew "imagemagick"
 brew "jq"
+brew "libomp" # lightgbm / xgboost が要求する OpenMP ランタイム（macOS の wheel は非同梱）
 brew "node"
 brew "p7zip"
 brew "pngpaste"
