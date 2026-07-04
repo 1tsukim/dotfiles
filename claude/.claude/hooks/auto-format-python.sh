@@ -15,6 +15,17 @@ case "$FILE_PATH" in
   *) exit 0 ;;
 esac
 
+# プロジェクト単位のオプトアウト:
+# 編集ファイルの祖先ディレクトリに .no-auto-format があれば no-op で抜ける
+# （そのリポジトリでは ruff 自動整形/自動修正を効かせたくない場合に置く）
+optout_dir=$(dirname "$FILE_PATH")
+while [ -n "$optout_dir" ] && [ "$optout_dir" != "/" ]; do
+  if [ -e "$optout_dir/.no-auto-format" ]; then
+    exit 0
+  fi
+  optout_dir=$(dirname "$optout_dir")
+done
+
 # ruff が無ければ no-op
 if ! command -v ruff >/dev/null 2>&1; then
   exit 0
