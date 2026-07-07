@@ -17,3 +17,7 @@ codex/.codex/config.toml
 # Claude Code memory / skill は別 repo (1tsukim/claude-context) で管理
 claude/.claude/projects/
 claude/.claude/skills/
+
+# Python bytecode
+__pycache__/
+*.pyc
