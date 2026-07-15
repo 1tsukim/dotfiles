@@ -1,0 +1,6 @@
+# codex --profile deep 用レイヤ
+approval_policy = "on-request"
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
+web_search = "disabled"

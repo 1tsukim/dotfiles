@@ -1,0 +1,6 @@
+# codex --profile balanced 用レイヤ（config.toml のデフォルトと同値。明示指定用）
+approval_policy = "on-request"
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+sandbox_mode = "workspace-write"
+web_search = "disabled"

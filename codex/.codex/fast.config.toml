@@ -1,0 +1,6 @@
+# codex --profile fast 用レイヤ
+approval_policy = "on-request"
+model = "gpt-5.4-mini"
+model_reasoning_effort = "low"
+sandbox_mode = "workspace-write"
+web_search = "disabled"
