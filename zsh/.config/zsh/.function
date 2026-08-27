@@ -51,6 +51,25 @@ ec2_restart() {
         && aws ec2 start-instances --instance-ids "$id" --profile "$profile"
 }
 
+# ========== AWS SSM: ポートフォワード（汎用） ==========
+# SSM セッション経由で EC2 の任意ポートを localhost に転送する。
+# 使い方:
+#   ssm_forward <instance-id> <remote-port> <local-port> [profile]
+# profile 省略時は $AWS_PROFILE_SSM（既定 ssm-access）。
+# フォアグラウンドで常駐するため、終了は Ctrl-C。
+ssm_forward() {
+    local id="${1:?instance-id required}"
+    local remote_port="${2:?remote-port required}"
+    local local_port="${3:?local-port required}"
+    local profile="${4:-${AWS_PROFILE_SSM:-ssm-access}}"
+
+    echo "port-forward: localhost:${local_port} -> ${id}:${remote_port} (profile: ${profile})"
+    aws ssm start-session --target "$id" \
+        --document-name AWS-StartPortForwardingSession \
+        --parameters "{\"portNumber\":[\"${remote_port}\"],\"localPortNumber\":[\"${local_port}\"]}" \
+        --profile "$profile"
+}
+
 # ========== yazi: 終了時のカレントディレクトリへ自動 cd するラッパー ==========
 # Ghostty 等の OSC 7 対応端末では既に追従するが、Cursor/SSH 等の保険として
 function y() {
