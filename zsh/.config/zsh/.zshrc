@@ -76,6 +76,16 @@ if [[ -o interactive ]]; then
   source "$ZDOTDIR/plugins/fzf-tab/fzf-tab.plugin.zsh"
 
   # zsh-abbr: 略語を Space/Enter で実コマンドに展開（履歴に展開後の形が残る）
+  # zsh-abbr は init のたびに $TMPDIR にジョブファイルを置いて他セッションと
+  # 直列化する。init 途中で kill されたシェルの残骸が残ると、以降の起動が
+  # 既定 30 秒ブロックされ「ターミナルが開かない」ように見えるため、
+  # source 前に 30 秒より古い残骸を掃除する（trash ではなく rm: 起動パス上の
+  # TMPDIR ロックファイルであり、ゴミ箱に残す価値がない）。
+  if [[ -d ${TMPDIR:-/tmp}/zsh-job-queue/zsh-abbr ]]; then
+    rm -f -- ${TMPDIR:-/tmp}/zsh-job-queue/zsh-abbr/*(Nms+30)
+  fi
+  # 掃除をすり抜けた新しい残骸で待たされる時間も抑える（既定 30 秒）
+  typeset -gi JOB_QUEUE_TIMEOUT_AGE_SECONDS=5
   source "$ZDOTDIR/plugins/zsh-abbr/zsh-abbr.plugin.zsh"
 
   # zsh-autosuggestions: 履歴ベースの ghost text 提案（→ キーで受け入れ）
