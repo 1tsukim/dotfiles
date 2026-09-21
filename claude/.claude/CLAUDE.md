@@ -33,6 +33,21 @@ them in the dotfiles repository.
 * When producing file artifacts (diagrams, CSVs, reports), suggest a save
   location and confirm the destination with the user before saving.
 
+## Review Loop (crit)
+
+Artifacts longer than one screen (plans, requirement docs, analysis reports,
+slide drafts, code diffs) go through `crit` before being presented: write the
+file, then open `crit <file>` so the user can comment on exact lines.
+
+* Keep short answers, one-off questions, and binary decisions in chat — the
+  browser round trip costs more than it saves.
+* Plan mode needs no action; the `ExitPlanMode` hook routes plans to crit.
+* Rendered artifacts (Marp, reveal.js, dashboards) need live mode, not
+  `crit preview` — see the `marp` skill.
+* Read comments with `crit comments --json`, reply with
+  `crit comment --reply-to <id>`. Never pass `--resolve`; resolving is the
+  user's call.
+
 ## Task Strategy
 
 For non-trivial tasks, briefly consider whether independent investigation,
