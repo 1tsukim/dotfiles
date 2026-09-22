@@ -9,14 +9,15 @@
 
 ## Dotfiles
 
-Files under `~/.claude/` and related dotfiles are symlinks. The real files are under:
+Entries under `~/.claude/` are symlinks into two repositories. Read and edit the
+real file, then commit in the repository that owns it:
 
-```text
-~/ghq/github.com/1tsukim/dotfiles/
-```
+| Path under `~/.claude/` | Repository |
+|---|---|
+| `skills/` | `~/ghq/github.com/1tsukim/claude-context/claude/.claude/skills/` |
+| `CLAUDE.md`, `settings.json`, `rules/`, `hooks/`, `agents/`, `commands/`, `statusline-command.sh` | `~/ghq/github.com/1tsukim/dotfiles/claude/.claude/` |
 
-When reading or editing these, use the real path directly. After changes, commit
-them in the dotfiles repository.
+When unsure, resolve the target with `readlink ~/.claude/<path>`.
 
 ## Working Principles
 
