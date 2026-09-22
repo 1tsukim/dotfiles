@@ -1,13 +1,3 @@
----
-paths:
-  - "**/*.py"
-  - "**/*.ipynb"
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
----
-
 # Coding discipline
 
 This rule prevents common LLM coding failures. It only adds details not already covered by `CLAUDE.md`.
