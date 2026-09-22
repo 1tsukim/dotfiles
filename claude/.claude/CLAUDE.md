@@ -69,8 +69,6 @@ parallel work. Do not use them for simple lookups or tightly sequential tasks.
 * Prefer `rg` over `grep`.
 * Prefer `gh` over `WebFetch` for GitHub access.
 * Prefer `trash` over `rm` for file deletion.
-* Do not run `git checkout` when it may overwrite uncommitted changes without
-  user approval.
 * Do not use raw `git commit`; use the `commit` skill.
 * Before any AWS S3 operation, invoke the `aws-s3` skill (wrappers, `--profile`, overwrite confirmation).
 
