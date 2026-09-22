@@ -48,12 +48,13 @@ file, then open `crit <file>` so the user can comment on exact lines.
 
 * Keep short answers, one-off questions, and binary decisions in chat — the
   browser round trip costs more than it saves.
-* Plan mode needs no action; the `ExitPlanMode` hook routes plans to crit.
-* Rendered artifacts (Marp, reveal.js, dashboards) need live mode, not
-  `crit preview` — see the `marp` skill.
-* Read comments with `crit comments --json`, reply with
-  `crit comment --reply-to <id>`. Never pass `--resolve`; resolving is the
-  user's call.
+* Plan mode needs no action; the crit plugin's `ExitPlanMode` hook routes plans
+  to crit. Plan reviews live in `~/.crit/plans/<slug>/`, so their comment
+  commands need `--plan <slug>`.
+* For CLI mechanics read the `crit-cli` skill; for rendered artifacts (Marp,
+  reveal.js, dashboards) use live mode, not `crit preview` — see the `marp`
+  skill.
+* Never pass `--resolve`; resolving is the user's call.
 
 ## Task Strategy
 
