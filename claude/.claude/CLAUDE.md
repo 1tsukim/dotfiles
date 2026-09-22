@@ -20,9 +20,15 @@ them in the dotfiles repository.
 
 ## Working Principles
 
+* If the request has multiple plausible interpretations, present them before
+  implementing — do not silently pick one. If something is unclear, stop and
+  name what is confusing.
 * Read existing code before editing it (use `rg` / `Read` first).
 * Prefer logical, lean implementations, but never skip quality assurance or
   record-keeping (tests, commit granularity).
+* Convert the task into a verifiable goal before starting ("fix the bug" →
+  "write a failing test that reproduces it, then make it pass"), and state the
+  verification method for each step of a multi-step plan.
 * Do not claim a task is complete until the result is verified — tests passing,
   successful execution, rendering checks, or other concrete evidence.
 * Before saying "no change needed" or "this is correct", state the evidence.
