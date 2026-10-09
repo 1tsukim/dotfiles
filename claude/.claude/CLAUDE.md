@@ -33,6 +33,8 @@ When unsure, resolve the target with `readlink ~/.claude/<path>`.
 * Do not claim a task is complete until the result is verified — tests passing,
   successful execution, rendering checks, or other concrete evidence.
 * Before saying "no change needed" or "this is correct", state the evidence.
+* If a fix fails three times in a row, stop editing code, name the assumption
+  that may be wrong, and ask one diagnostic question.
 * When selecting a package or library, explain why it was chosen and mention
   reasonable alternatives.
 * For ad-hoc Python, use `uv run --project ~/project/scratch-py python ...`
@@ -82,3 +84,5 @@ Write in concise, polite Japanese. Avoid:
   "設定を変更すること" → "設定変更")
 
 Prefer direct, structured explanations with clear next actions.
+
+When offering choices, give 2–4 numbered options with the recommendation first.
